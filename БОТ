@@ -1,0 +1,75 @@
+from telegram import Update
+from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes
+
+BOT_TOKEN = "7796919987:AAHXdF2IOxgUNZyRazYENBLSrxTRZE_DyCI"
+
+YOUR_CHAT_ID = 1891586130  # Ваш ID
+
+
+async def forward_to_owner(update: Update, context: ContextTypes.DEFAULT_TYPE, bot_response: str = None):
+
+    try:
+        user_info = f"👤 Пользователь: {update.message.from_user.first_name}"
+        user_message = f"💬 Сообщение: {update.message.text}"
+
+        full_text = f"{user_info}\n{user_message}"
+
+        if bot_response:
+            full_text += f"\n🤖 Ответ бота: {bot_response}"
+
+        await context.bot.send_message(chat_id=YOUR_CHAT_ID, text=full_text)
+    except Exception as e:
+        print(f"Ошибка пересылки: {e}")
+
+
+# Функция для команды /start
+async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    response = "Привет! Я телеграм-бот, созданный одним очень умным и хороший человеком!"
+    await update.message.reply_text(response)
+    await forward_to_owner(update, context, response)
+
+
+# Функция для обработки сообщений
+async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    text = update.message.text.lower()
+
+    bad_words = ["блять", "блядь", "сука", "хуй", "пизда", "нахуй", "пидор", "пидорас", "пидорасина", "пиздец"]
+    greeting_words = ["привет", "здравствуй", "хай", "hello", "hi", "салют", "бонжур", "салам","сап"]
+
+    # Проверяем на матерные слова
+    if any(bad_word in text for bad_word in bad_words):
+        response = "❌ Пожалуйста, выражайтесь вежливо! Матерные слова выдают в вас некультурного человека."
+        await update.message.reply_text(response)
+        await forward_to_owner(update, context, response)
+        return
+
+    # Проверяем на приветствия
+    if text in greeting_words:
+        response = "Привет снова!"
+        await update.message.reply_text(response)
+        await forward_to_owner(update, context, response)
+        return
+
+    # Для всех остальных сообщений
+    response = "К сожалению, я пока не понимаю, что вы сейчас говорите"
+    await update.message.reply_text(response)
+    await forward_to_owner(update, context, response)
+
+
+
+# Основная функция
+def main():
+    # Создаем приложение
+    application = Application.builder().token(BOT_TOKEN).build()
+
+    # Добавляем обработчики
+    application.add_handler(CommandHandler("start", start_command))
+    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
+
+    # Запускаем бота
+    print("Бот запущен...")
+    application.run_polling()
+
+
+if __name__ == "__main__":
+    main()
