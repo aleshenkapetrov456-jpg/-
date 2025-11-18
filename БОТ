@@ -56,18 +56,6 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(response)
     await forward_to_owner(update, context, response)
 
-# Список аффирмаций
-affirmations = ["а", "б", "в"]
-
-# Обработчик команды /affirmation
-@bot.message_handler(commands=['affirmation'])
-def handle_affirmation(message):
-    # Выбираем случайную аффирмацию из списка
-    affirmation = random.choice(affirmations)
-    # Отправляем выбранную аффирмацию пользователю
-    bot.send_message(message.chat.id, affirmation)
-
-
 # Основная функция
 def main():
     # Создаем приложение
