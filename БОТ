@@ -52,7 +52,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
 
     # Для всех остальных сообщений
-    response = "К сожалению, я пока не понимаю, что вы сейчас говорите /ᐠ - ˕ -マ "
+    response = "К сожалению, я пока не понимаю, что вы сейчас говорите        /ᐠ - ˕ -マ "
     await update.message.reply_text(response)
     await forward_to_owner(update, context, response)
 
