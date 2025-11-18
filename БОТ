@@ -36,6 +36,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     bad_words = ["блять", "блядь", "сука", "хуй", "пизда", "нахуй", "пидор", "пидорас", "пидорасина", "пиздец"]
     greeting_words = ["привет", "здравствуй", "хай", "hello", "hi", "салют", "бонжур", "салам","сап"]
+    meow_words = ["мяу", "Мяу", "мяуу", "Мяуу", "Мяяу", "мяяу","мур","Мур","Мур мур"]
 
     # Проверяем на матерные слова
     if any(bad_word in text for bad_word in bad_words):
@@ -50,6 +51,13 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text(response)
         await forward_to_owner(update, context, response)
         return
+
+    if text in meow_words :
+        response = "Мяу ฅᨐฅ", "МЯУ! ᓚ₍⑅^..^₎♡"
+        await update.message.reply_text(repsonse)
+        await forward_to_owner(update, context, response)
+        return
+
 
     # Для всех остальных сообщений
     response = "К сожалению, я пока не понимаю, что вы сейчас говорите        /ᐠ - ˕ -マ "
