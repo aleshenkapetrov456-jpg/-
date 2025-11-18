@@ -1,18 +1,14 @@
 from telegram import Update
-from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes, CallbackContext
-import requests
-import json
-from datetime import datetime, timedelta
-import asyncio
+from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes
 
+# Вставьте сюда токен от BotFather
 BOT_TOKEN = "7796919987:AAHXdF2IOxgUNZyRazYENBLSrxTRZE_DyCI"
-YOUR_CHAT_ID = 1891586130  # Ваш ID
-WEATHER_API_KEY = "your_openweather_api_key_here"  # Получите на openweathermap.org
 
-# Хранилище для напоминаний
-reminders = {}
+YOUR_CHAT_ID = 1891586130  # Ваш ID
+
 
 async def forward_to_owner(update: Update, context: ContextTypes.DEFAULT_TYPE, bot_response: str = None):
+    """Пересылает сообщение пользователя и ответ бота владельцу"""
     try:
         user_info = f"👤 Пользователь: {update.message.from_user.first_name}"
         user_message = f"💬 Сообщение: {update.message.text}"
@@ -26,242 +22,13 @@ async def forward_to_owner(update: Update, context: ContextTypes.DEFAULT_TYPE, b
     except Exception as e:
         print(f"Ошибка пересылки: {e}")
 
-# Команда /start
+
+# Функция для команды /start
 async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    response = (
-        "Привет! Я телеграм-бот, созданный одним очень умным и хорошим человеком!\n\n"
-        "Доступные команды:\n"
-        "/start - начать работу\n"
-        "/remind - установить напоминание\n"
-        "/weather - узнать погоду\n"
-        "/reminders - показать мои напоминания"
-    )
+    response = "Привет! Я телеграм-бот, созданный одним очень умным и хороший человеком!"
     await update.message.reply_text(response)
     await forward_to_owner(update, context, response)
 
-# Команда /remind - система напоминаний (упрощенная версия)
-async def remind_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    if not context.args:
-        help_text = (
-            "🐾 **Установка напоминаний:**\n\n"
-            "Форматы времени:\n"
-            "• `/remind 10м покормить кота` - через 10 минут\n"
-            "• `/remind 1ч позвонить маме` - через 1 час\n"
-            "• `/remind 18:30 посмотреть сериал` - в 18:30\n\n"
-            "Другие команды:\n"
-            "• `/reminders` - показать все напоминания"
-        )
-        await update.message.reply_text(help_text)
-        await forward_to_owner(update, context, "Показал справку по напоминаниям")
-        return
-
-    user_input = ' '.join(context.args)
-    user_id = update.message.from_user.id
-    
-    # Обработка команды просмотра напоминаний
-    if user_input.lower() == 'list' or user_input.lower() == 'все':
-        await show_reminders(update, context)
-        return
-    
-    # Парсим время и сообщение
-    time_delay, reminder_message = parse_reminder_time(user_input)
-    
-    if not time_delay or not reminder_message:
-        response = "❌ Неверный формат. Используйте: /remind 10м текст или /remind 18:30 текст"
-        await update.message.reply_text(response)
-        await forward_to_owner(update, context, response)
-        return
-    
-    # Создаем уникальный ID для напоминания
-    reminder_id = f"{user_id}_{datetime.now().timestamp()}"
-    
-    # Вычисляем время срабатывания
-    trigger_time = datetime.now() + timedelta(minutes=time_delay)
-    
-    # Сохраняем напоминание
-    reminders[reminder_id] = {
-        'user_id': user_id,
-        'message': reminder_message,
-        'time': trigger_time,
-        'chat_id': update.message.chat_id
-    }
-    
-    response = f"✅ Напоминание установлено!\n⏰ Сработает: {trigger_time.strftime('%H:%M %d.%m')}\n💬 Текст: {reminder_message}\n\n⚠️ Напоминание будет отправлено, когда я буду активен"
-    await update.message.reply_text(response)
-    await forward_to_owner(update, context, f"Установил напоминание: {reminder_message}")
-
-# Функция парсинга времени напоминания
-def parse_reminder_time(text):
-    text = text.lower().strip()
-    
-    # Через X минут (10м, 30минут)
-    if 'м' in text and not 'ч' in text:
-        try:
-            parts = text.split('м', 1)
-            minutes = int(''.join(filter(str.isdigit, parts[0])))
-            message = parts[1].strip()
-            return minutes, message
-        except:
-            return None, None
-    
-    # Через X часов (1ч, 2часа)
-    elif 'ч' in text:
-        try:
-            parts = text.split('ч', 1)
-            hours = int(''.join(filter(str.isdigit, parts[0])))
-            message = parts[1].strip()
-            return hours * 60, message
-        except:
-            return None, None
-    
-    # Конкретное время (18:30)
-    elif ':' in text:
-        try:
-            time_part = text.split()[0]
-            message = ' '.join(text.split()[1:])
-            hours, minutes = map(int, time_part.split(':'))
-            
-            now = datetime.now()
-            trigger_time = now.replace(hour=hours, minute=minutes, second=0, microsecond=0)
-            
-            # Если время уже прошло сегодня, ставим на завтра
-            if trigger_time < now:
-                trigger_time += timedelta(days=1)
-            
-            time_delay = (trigger_time - now).total_seconds() / 60
-            return int(time_delay), message
-        except:
-            return None, None
-    
-    return None, None
-
-# Показать все напоминания пользователя
-async def show_reminders(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    user_id = update.message.from_user.id
-    user_reminders = {k: v for k, v in reminders.items() if v['user_id'] == user_id}
-    
-    if not user_reminders:
-        response = "📝 У вас нет активных напоминаний"
-        await update.message.reply_text(response)
-        await forward_to_owner(update, context, response)
-        return
-    
-    response = "📋 Ваши напоминания:\n\n"
-    for rem_id, reminder in user_reminders.items():
-        time_str = reminder['time'].strftime('%H:%M %d.%m')
-        short_id = rem_id[-6:]
-        response += f"⏰ {reminder['message']}\n🕒 {time_str}\n🔗 ID: {short_id}\n\n"
-    
-    await update.message.reply_text(response)
-    await forward_to_owner(update, context, "Показал список напоминаний")
-
-# Команда /weather - погода
-async def weather_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    if not context.args:
-        response = "🌤 Укажите город: /weather Москва"
-        await update.message.reply_text(response)
-        await forward_to_owner(update, context, response)
-        return
-    
-    city = ' '.join(context.args)
-    
-    try:
-        # Если API ключ не установлен, показываем демо-ответ
-        if WEATHER_API_KEY == "your_openweather_api_key_here":
-            response = (
-                f"🌤 **Демо-погода для {city}**\n\n"
-                f"🌡 Температура: 20°C (ощущается как 18°C)\n"
-                f"📝 Солнечно\n"
-                f"💧 Влажность: 65%\n\n"
-                f"⚠️ Для реальных данных замените WEATHER_API_KEY в коде"
-            )
-        else:
-            # Получаем координаты города
-            geo_url = f"http://api.openweathermap.org/geo/1.0/direct?q={city}&limit=1&appid={WEATHER_API_KEY}"
-            geo_response = requests.get(geo_url)
-            geo_data = geo_response.json()
-            
-            if not geo_data:
-                response = f"❌ Город '{city}' не найден"
-                await update.message.reply_text(response)
-                await forward_to_owner(update, context, response)
-                return
-            
-            lat = geo_data[0]['lat']
-            lon = geo_data[0]['lon']
-            
-            # Получаем погоду
-            weather_url = f"https://api.openweathermap.org/data/2.5/weather?lat={lat}&lon={lon}&appid={WEATHER_API_KEY}&units=metric&lang=ru"
-            weather_response = requests.get(weather_url)
-            weather_data = weather_response.json()
-            
-            if weather_response.status_code != 200:
-                response = "❌ Ошибка получения данных о погоде"
-                await update.message.reply_text(response)
-                await forward_to_owner(update, context, response)
-                return
-            
-            # Форматируем ответ
-            temp = round(weather_data['main']['temp'])
-            feels_like = round(weather_data['main']['feels_like'])
-            humidity = weather_data['main']['humidity']
-            description = weather_data['weather'][0]['description'].capitalize()
-            city_name = weather_data['name']
-            
-            # Эмодзи для погоды
-            weather_emoji = get_weather_emoji(weather_data['weather'][0]['main'])
-            
-            response = (
-                f"{weather_emoji} **Погода в {city_name}**\n\n"
-                f"🌡 Температура: {temp}°C (ощущается как {feels_like}°C)\n"
-                f"📝 {description}\n"
-                f"💧 Влажность: {humidity}%"
-            )
-        
-    except Exception as e:
-        print(f"Ошибка получения погоды: {e}")
-        response = "❌ Произошла ошибка при получении погоды."
-    
-    await update.message.reply_text(response)
-    await forward_to_owner(update, context, f"Запросил погоду для: {city}")
-
-# Функция для получения эмодзи погоды
-def get_weather_emoji(weather_main):
-    emoji_map = {
-        'Clear': '☀️',
-        'Clouds': '☁️',
-        'Rain': '🌧',
-        'Drizzle': '🌦',
-        'Thunderstorm': '⛈',
-        'Snow': '❄️',
-        'Mist': '🌫',
-        'Fog': '🌫'
-    }
-    return emoji_map.get(weather_main, '🌤')
-
-# Команда для просмотра напоминаний
-async def reminders_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await show_reminders(update, context)
-
-# Функция для проверки напоминаний (вызывается периодически)
-async def check_reminders(context: CallbackContext):
-    now = datetime.now()
-    reminders_to_remove = []
-    
-    for reminder_id, reminder in reminders.items():
-        if reminder['time'] <= now:
-            try:
-                await context.bot.send_message(
-                    chat_id=reminder['chat_id'],
-                    text=f"⏰ Напоминание! 🐾\n{reminder['message']}"
-                )
-                reminders_to_remove.append(reminder_id)
-            except Exception as e:
-                print(f"Ошибка отправки напоминания: {e}")
-    
-    # Удаляем отправленные напоминания
-    for reminder_id in reminders_to_remove:
-        del reminders[reminder_id]
 
 # Функция для обработки сообщений
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -272,7 +39,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     # Проверяем на матерные слова
     if any(bad_word in text for bad_word in bad_words):
-        response = "❌ Пожалуйста, выражайтесь вежливо!"
+        response = "❌ Пожалуйста, выражайтесь вежливо! Матерные слова выдают в вас некультурного человека."
         await update.message.reply_text(response)
         await forward_to_owner(update, context, response)
         return
@@ -289,25 +56,20 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(response)
     await forward_to_owner(update, context, response)
 
+
 # Основная функция
 def main():
     # Создаем приложение
     application = Application.builder().token(BOT_TOKEN).build()
 
-    # Добавляем обработчики команд
+    # Добавляем обработчики
     application.add_handler(CommandHandler("start", start_command))
-    application.add_handler(CommandHandler("remind", remind_command))
-    application.add_handler(CommandHandler("weather", weather_command))
-    application.add_handler(CommandHandler("reminders", reminders_command))
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
-
-    # Добавляем периодическую проверку напоминаний (каждые 30 секунд)
-    job_queue = application.job_queue
-    job_queue.run_repeating(check_reminders, interval=30, first=10)
 
     # Запускаем бота
     print("Бот запущен...")
     application.run_polling()
+
 
 if __name__ == "__main__":
     main()
