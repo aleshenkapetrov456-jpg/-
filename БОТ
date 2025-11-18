@@ -35,9 +35,9 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     text = update.message.text.lower()
 
     bad_words = ["блять", "блядь", "сука", "хуй", "пизда", "нахуй", "пидор", "пидорас", "пидорасина", "пиздец"]
-    greeting_words = ["привет", "здравствуй", "хай", "hello", "hi", "салют", "бонжур", "салам","сап"]
-    meow_words = ["мяу", "Мяу", "мяуу", "Мяуу", "Мяяу", "мяяу","мур","Мур","Мур мур"]
-
+    greeting_words = ["привет", "здравствуй", "хай", "hello", "hi", "салют", "бонжур", "салам","сап","хеллоу"]
+    cat_words = ["мяу", "мур", "мурр", "мурмяу", "мяумур", "кот", "котик", "кошка", "киса", "котенок", "cat", "kitty"]
+    
     # Проверяем на матерные слова
     if any(bad_word in text for bad_word in bad_words):
         response = "❌ Пожалуйста, выражайтесь вежливо! Матерные слова выдают в вас некультурного человека ^._.^"
@@ -52,12 +52,24 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await forward_to_owner(update, context, response)
         return
 
-    if text in meow_words :
-        response = "Мяу ฅᨐฅ", "МЯУ! ᓚ₍⑅^..^₎♡"
-        await update.message.reply_text(repsonse)
+    if any(cat_word in text for cat_word in cat_words):
+        import random
+        cat_responses = [
+            "Мяу ฅᨐฅ",
+            "МЯУ! ᓚ₍⑅^..^₎♡",
+            "Муррр~ (=^･ω･^=)",
+            "Мяяяу! ฅ^•ﻌ•^ฅ",
+            "Мур-мяу! (´･ω･`)",
+            "МЯУ!!! ヽ(≧◡≦)八(◕‿◕｡)ノ",
+            "Мур-мур-мяу ᓚᘏᗢ",
+            "Мяу? ฅ(^◕ᴥ◕^)ฅ",
+            "Муррррр! (=｀ω´=)",
+            "Мяу-мяу! (^人^)"
+        ]
+        response = random.choice(cat_responses)
+        await update.message.reply_text(response)
         await forward_to_owner(update, context, response)
         return
-
 
     # Для всех остальных сообщений
     response = "К сожалению, я пока не понимаю, что вы сейчас говорите        /ᐠ - ˕ -マ "
