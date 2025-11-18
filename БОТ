@@ -39,7 +39,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     # Проверяем на матерные слова
     if any(bad_word in text for bad_word in bad_words):
-        response = "❌ Пожалуйста, выражайтесь вежливо! Матерные слова выдают в вас некультурного человека."
+        response = "❌ Пожалуйста, выражайтесь вежливо! Матерные слова выдают в вас некультурного человека ^._.^"
         await update.message.reply_text(response)
         await forward_to_owner(update, context, response)
         return
@@ -52,7 +52,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
 
     # Для всех остальных сообщений
-    response = "К сожалению, я пока не понимаю, что вы сейчас говорите"
+    response = "К сожалению, я пока не понимаю, что вы сейчас говорите /ᐠ - ˕ -マ "
     await update.message.reply_text(response)
     await forward_to_owner(update, context, response)
 
