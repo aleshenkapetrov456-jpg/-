@@ -25,7 +25,7 @@ async def forward_to_owner(update: Update, context: ContextTypes.DEFAULT_TYPE, b
 
 # Функция для команды /start
 async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    response = "Привет! Я телеграм-бот, созданный одним очень умным и хороший человеком!"
+    response = "Привет! Я телеграм-бот, созданный одним очень умным и хороший человеком! ≽^•⩊•^≼"
     await update.message.reply_text(response)
     await forward_to_owner(update, context, response)
 
@@ -46,7 +46,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     # Проверяем на приветствия
     if text in greeting_words:
-        response = "Привет снова!"
+        response = "Привет снова! ≽^•⩊•^≼ ₊˚⊹♡"
         await update.message.reply_text(response)
         await forward_to_owner(update, context, response)
         return
