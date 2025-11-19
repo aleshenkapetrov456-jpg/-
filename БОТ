@@ -31,6 +31,13 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await forward_to_owner(update, context, response)
 
 
+# Функция для команды /info
+async def info_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    response = "а"
+    await update.message.reply_text(response)
+    await forward_to_owner(update, context, response)
+
+
 # Функция для обработки сообщений
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     text = update.message.text.lower()
@@ -41,8 +48,14 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     fact_words = ["факт", "расскажи факт", "интересный факт"]
     affirmations_words = ["совет", "аффирмация", "дай совет"]
 
+    # Проверяем на сообщения "передай" (повышенный приоритет)
+    if text.startswith("передай"):
+        response = "Спасибо за обращение! Обязательно передам это автору 🐈"
+        await update.message.reply_text(response)
+        await forward_to_owner(update, context, response)
+
     # Проверяем на матерные слова (самый высокий приоритет)
-    if any(bad_word in text for bad_word in bad_words):
+    elif any(bad_word in text for bad_word in bad_words):
         response = "❌ Пожалуйста, выражайтесь вежливо! Матерные слова выдают в вас некультурного человека ^._.^"
         await update.message.reply_text(response)
         await forward_to_owner(update, context, response)
@@ -144,6 +157,7 @@ def main():
 
     # Добавляем обработчики
     application.add_handler(CommandHandler("start", start_command))
+    application.add_handler(CommandHandler("info", info_command))
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
 
     # Запускаем бота
