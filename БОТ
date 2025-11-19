@@ -1,5 +1,6 @@
 from telegram import Update
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes
+import random  # Добавлен импорт random
 
 # Вставьте сюда токен от BotFather
 BOT_TOKEN = "7958550643:AAGOaqQXnKxzKLnhM-1Lq8H4HOixWQW93lo"
@@ -25,7 +26,7 @@ async def forward_to_owner(update: Update, context: ContextTypes.DEFAULT_TYPE, b
 
 # Функция для команды /start
 async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    response = "Привет! Я телеграм-бот, созданный одним очень умным и хороший человеком! ≽^•⩊•^≼" 
+    response = "Привет! Я телеграм-бот, созданный одним очень умным и хороший человеком! ≽^•⩊•^≼"
     await update.message.reply_text(response)
     await forward_to_owner(update, context, response)
 
@@ -35,8 +36,8 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     text = update.message.text.lower()
 
     bad_words = ["блять", "блядь", "сука", "хуй", "пизда", "нахуй", "пидор", "пидорас", "пидорасина", "пиздец"]
-    greeting_words = ["привет", "здравствуй", "хай", "hello", "hi", "салют", "бонжур", "салам","сап","хеллоу"]
-    meow_words = ["муррр","мяяяу","мур","мурр","мяяу","мяу","meow",]
+    greeting_words = ["привет", "здравствуй", "хай", "hello", "hi", "салют", "бонжур", "салам", "сап", "хеллоу"]
+    meow_words = ["муррр", "мяяяу", "мур", "мурр", "мяяу", "мяу", "meow"]
 
     # Проверяем на матерные слова
     if any(bad_word in text for bad_word in bad_words):
@@ -54,16 +55,21 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     # Проверяем на мявки
     if text in meow_words:
-        possible_response = ["Мррр-мяу!  =^･ω･^=", "Мяяяяу?  (=´･ω･=)", "МЯУ!  ／(≧ x ≦)＼", "Мя...  (=｀ω´=)", "Мррр-мяяяу  ~(=^‥^)ノ","Мяу-мяу!  (^・ω・^ )","Мяу?  (＾• ω •＾)","Мяяяяяу!  ／(^ x ^)＼","Мяу...  (＝⌒▽⌒＝)","Мяу!  (^･o･^)ﾉ","Мяяу-мяу  ／(^ ▽ ^)＼","Мяу?  (◕‿◕)","Мурр (≧◡≦)","Мяу-мяу  (´･ω･)","Мяу!  (^◕ᴗ◕^)","Мяяяяяяу  ／(^ v ^)＼","Мяу?  (´｡• ω •｡`)","Мяу!  =^..^=","Мяяу  (◕ᴗ◕✿)","Мяу!  ฅ^•ﻌ•^ฅ","","","","","","","","","",""]
+        possible_response = ["Мррр-мяу!  =^･ω･^=", "Мяяяяу?  (=´･ω･=)", "МЯУ!  ／(≧ x ≦)＼", "Мя...  (=｀ω´=)",
+                             "Мррр-мяяяу  ~(=^‥^)ノ", "Мяу-мяу!  (^・ω・^ )", "Мяу?  (＾• ω •＾)", "Мяяяяяу!  ／(^ x ^)＼",
+                             "Мяу...  (＝⌒▽⌒＝)", "Мяу!  (^･o･^)ﾉ", "Мяяу-мяу  ／(^ ▽ ^)＼", "Мяу?  (◕‿◕)", "Мурр (≧◡≦)",
+                             "Мяу-мяу  (´･ω･)", "Мяу!  (^◕ᴗ◕^)", "Мяяяяяяу  ／(^ v ^)＼", "Мяу?  (´｡• ω •｡`)",
+                             "Мяу!  =^..^=", "Мяяу  (◕ᴗ◕✿)", "Мяу!  ฅ^•ﻌ•^ฅ"]
         response = random.choice(possible_response)
         await update.message.reply_text(response)
         await forward_to_owner(update, context, response)
         return
-  
+
     # Для всех остальных сообщений
     response = "К сожалению, я пока не понимаю, что вы сейчас говорите        /ᐠ - ˕ -マ "
     await update.message.reply_text(response)
     await forward_to_owner(update, context, response)
+
 
 # Основная функция
 def main():
@@ -79,5 +85,5 @@ def main():
     application.run_polling()
 
 
-if name == "main":
+if __name__ == "__main__":  # Исправлено на правильный синтаксис
     main()
