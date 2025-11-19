@@ -47,7 +47,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text(response)
         await forward_to_owner(update, context, response)
 
-    # Проверяем на аффирмации (повышенный приоритет)
+    # Проверяем на аффирмации (повышенный приоритет) - ИСПРАВЛЕННАЯ ЧАСТЬ
     elif any(word in text for word in affirmations_words):
         affirmations = [
             "Я иду по жизни с грацией кошки 🐈‍⬛, легко и уверенно",
