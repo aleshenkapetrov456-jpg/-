@@ -1,9 +1,16 @@
 from telegram import Update
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes
 import random
+import logging
+
+# Настройка логирования для отладки
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(name)
+
 
 # Вставьте сюда токен от BotFather
 BOT_TOKEN = "7958550643:AAGOaqQXnKxzKLnhM-1Lq8H4HOixWQW93lo"
+
 
 YOUR_CHAT_ID = 1891586130  # Ваш ID
 
@@ -19,9 +26,10 @@ async def forward_to_owner(update: Update, context: ContextTypes.DEFAULT_TYPE, b
         if bot_response:
             full_text += f"\n🤖 Ответ бота: {bot_response}"
 
+
         await context.bot.send_message(chat_id=YOUR_CHAT_ID, text=full_text)
     except Exception as e:
-        print(f"Ошибка пересылки: {e}")
+        logger.error(f"Ошибка пересылки: {e}")
 
 
 # Функция для команды /start
@@ -30,23 +38,23 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(response)
     await forward_to_owner(update, context, response)
 
-
 # Функция для команды /info
 async def info_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    response = "а"
+    response = "Я — милый кошачий бот! Умею: \n- Отвечать на приветствия\n- Рассказывать факты о кошках\n- Давать аффирмации-советы\n- Реагировать на кошачьи звуки\n- Передавать сообщения владельцу"
     await update.message.reply_text(response)
     await forward_to_owner(update, context, response)
 
-
 # Функция для обработки сообщений
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    text = update.message.text.lower()
+    # Очищаем и нормализуем текст
+    text = update.message.text.lower().strip().strip('?!.,;:')
 
     bad_words = ["блять", "блядь", "сука", "хуй", "пизда", "нахуй", "пидор", "пидорас", "пидорасина", "пиздец"]
     greeting_words = ["привет", "здравствуй", "хай", "hello", "hi", "салют", "бонжур", "салам", "сап", "хеллоу"]
     meow_words = ["муррр", "мяяяу", "мур", "мурр", "мяяу", "мяу", "meow"]
     fact_words = ["факт", "расскажи факт", "интересный факт"]
     affirmations_words = ["совет", "аффирмация", "дай совет"]
+
 
     # Проверяем на сообщения "передай" (повышенный приоритет)
     if text.startswith("передай"):
@@ -60,7 +68,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text(response)
         await forward_to_owner(update, context, response)
 
-    # Проверяем на аффирмации (повышенный приоритет) - ИСПРАВЛЕННАЯ ЧАСТЬ
+    # Проверяем на аффирмации
     elif any(word in text for word in affirmations_words):
         affirmations = [
             "Я иду по жизни с грацией кошки 🐈‍⬛, легко и уверенно",
@@ -71,6 +79,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
             "Я встаю на лапки после любой неудачи, ведь у меня девять жизней! 😼💪",
             "Мое сердце полно любви, как полон кот, мурчащий у меня на коленях 😻💖",
             "Я позволяю себе быть игривым и находить радость в мелочах 🐱‍🏍✨",
+    
             "Я независим и уверен в своем пути, как вольный кот 🐈💫",
             "Мое пространство — это мое безопасное и уютное гнездышко 🐱🧺",
             "Я доверяю своей интуиции, как кот доверяет своим чувствам 👁️🐾",
